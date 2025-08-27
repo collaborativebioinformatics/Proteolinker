@@ -2,4 +2,4 @@
 
 Flowchart:
 
-![Flowchart](Diagram_color.png)
+![Flowchart](Diagram_color_v2.png)
