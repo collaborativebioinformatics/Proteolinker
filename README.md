@@ -1,3 +1,5 @@
 # ProteO-Linker
 
-A wonderful tool that does amazing stuff!
+Flowchart:
+
+![Flowchart](Diagram_color.png)
