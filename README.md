@@ -5,13 +5,13 @@
 ## Overview & Objective
 ## Methodology
 
-# Workflow
+## Workflow
 ![Flowchart](Diagram_color_v2.png)
 
-# Breakdown of steps and options
+## Breakdown of steps and options
 
-# Future Directions and Conclusion
+## Future Directions and Conclusion
 
 **Conclusion:**
 
-# Contributors: 
+## Contributors: 
