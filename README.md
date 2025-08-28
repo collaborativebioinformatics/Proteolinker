@@ -31,6 +31,7 @@ Abbreviation  | Acronym
 ANOVA  | Analysis of Variance
 LOD | Limit of Detection
 LOQ | Limit of Quantification
+NPX | Normalized Protein eXpression
 PEA | Proximity Extension Assay 
 
 ## NCBI Codeathon Disclaimer
