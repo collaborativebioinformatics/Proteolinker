@@ -36,7 +36,6 @@ if (LOD_opt==2){
     summarise(LOD=median(NPX)+3*sd(NPX),PCNormalizedLOD=median(PCNormalizedNPX)+3*sd(PCNormalizedNPX))
   LOD_npx_parquet_NCStdev<-select(LOD_Assay, Assay, PCNormalizedLOD, LOD) %>%
     left_join(npx_parquet, by=c("Assay"))
-  
   LOD_model<-LOD_npx_parquet_NCStdev|>
     dplyr::mutate(Threshold  = ifelse(NPX<LOD,"LOD","Above_LOD"))
   }
