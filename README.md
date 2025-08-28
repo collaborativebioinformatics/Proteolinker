@@ -20,17 +20,19 @@ ProteO-Linker implements a stepwise pipeline:
 2. **LOD Filtering**
    - Two filtering methods are available:
      1. Fixed LOD (values provided by Olink)  
-     2. Standard deviation–based LOD (customizable)  
+     2. Standard deviation–based LOD (customizable, current default is 3 SD from mean)  
    - If applied, a volcano plot of all 6 sample controls is generated, showing proteins above and below LOD  
 
 3. **Differential Expression (DE) Analysis**
-   - Users may upload a list of differentially expressed proteins  
+   - Users may upload a list of differentially expressed proteins with DE analysis
+   - Or the app will do DE analysis, users need to upload a manifest: male vs. female, treated vs. nontreated
+   - DE will be done via ttest or LMER  
    - DE results can be visualized with volcano plots (protein name, fold-change, p-value)  
-   - These outputs can be used as input for pathway enrichment  
+   - These outputs will be used as input for pathway enrichment  
 
 4. **Pathway Enrichment**
    - Enrichment analysis highlights pathways associated with significant proteins  
-   - Currently supports simple t-tests; additional methods (FDR, Fisher’s test) planned for future development  
+   - Will use GSEA; additional methods (FDR, Fisher’s test) planned for future development  
 
 5. **Visualization**
    - Histograms/heatmaps of protein expression linked to GO terms  
