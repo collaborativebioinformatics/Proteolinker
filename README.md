@@ -5,6 +5,17 @@ ProteO-Linker is a web-based protein expression analysis tool. It uses a Shiny i
 
 ## Overview & Objective
 ## Methodology
+** QC of input files **
+For each parquet file uploaded, two checks are run.  1) Check to make sure file is complete and formatted correctly
+2) Inform user of Failed or Warned Samples or Assays in each parquet file
+
+** LOD **
+The user has the option of filtering the data by LOD
+Two methods are available:  1) Fixed LOD   2) Standard Deviation based LOD
+
+If user selects this, a volcan plot of all 6 sample controls will be available to download that visualizes what is above and below LOD
+
+** DE analysis **
 
 ## Workflow
 ![Flowchart](Diagram_color_v3.png)
@@ -23,7 +34,7 @@ ProteO-Linker is a web-based protein expression analysis tool. It uses a Shiny i
 - Neda Ghohabi Esfahani,  
 - Michael Muchow, DMV Petri Dish
 - Aniket Naik, 
-- Qiaoyan Wang, 
+- Qiaoyan Wang, BCM
 
 ## Common Acronyms
 Abbreviation  | Acronym
