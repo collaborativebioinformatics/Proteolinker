@@ -26,7 +26,7 @@ if (LOD_opt==1){
   }
 LOD_model<-LOD_npx_parquet|>
   dplyr::mutate(Threshold  = ifelse(NPX<LOD,"LOD","Non_LOD"))|>
-  mutate(Threshold = replace_na(Threshold, "Non_LOD"))
+  mutate(Threshold = replace_na(Threshold, "Above_LOD"))
 
 if (LOD_opt==2){
   LOD_Assay <- npx_parquet %>% 
@@ -37,4 +37,4 @@ if (LOD_opt==2){
     left_join(npx_parquet, by=c("Assay", "PlateID"))
 }
 LOD_model_NCStdev<-LOD_npx_parquet_NCStdev|>
-  dplyr::mutate(Threshold  = ifelse(NPX<LOD,"LOD","Non_LOD"))
+  dplyr::mutate(Threshold  = ifelse(NPX<LOD,"LOD","Above_LOD"))
