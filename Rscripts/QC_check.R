@@ -1,3 +1,19 @@
+library(tidyverse)      
+library(palmerpenguins) 
+library(OlinkAnalyze)   
+library(arrow)          
+library(magrittr)       
+library(dplyr)          
+library(umap)           
+library(ggplot2)        
+library(gtable)         
+library(grid)           
+library(gridExtra)      
+library(readxl)         
+library(reshape2)     
+library(kableExtra)
+library(purrr)
+
 Olink_datafile <- read_parquet("Desktop/Olink_datafile.parquet")
 
 Olink_datafile%>%
