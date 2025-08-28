@@ -6,7 +6,7 @@
 ## Methodology
 
 ## Workflow
-![Flowchart](Diagram_color_v2.png)
+![Flowchart](Diagram_color_v3.png)
 
 ## Breakdown of steps and options
 
