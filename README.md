@@ -24,6 +24,15 @@ ProteO-Linker is a web-based protein expression analysis tool. It uses a Shiny i
    ```r
    shiny::runApp("app.R")
    ```
+4. **Upload data**
+   - Select your Olink NPX or parquet file(s)
+   - Run QC and LOD filtering (optional)
+   - (Optional) Upload a differential expression (DE) list
+
+5. **Explore results**
+   - Generate histograms, heatmaps, and volcano plots
+   - Run pathway enrichment analysis
+   - Download plots (PNG) or results (CSV/PDF)
 
 # Pathway Enrichment Analysis Pipeline
 
@@ -75,16 +84,6 @@ ProteO-Linker implements a stepwise pipeline:
 
 ## Future Directions and Conclusion
 
-
-4. **Upload data**
-   - Select your Olink NPX or parquet file(s)
-   - Run QC and LOD filtering (optional)
-   - (Optional) Upload a differential expression (DE) list
-
-5. **Explore results**
-   - Generate histograms, heatmaps, and volcano plots
-   - Run pathway enrichment analysis
-   - Download plots (PNG) or results (CSV/PDF)
      
 ## Contributors: 
 
