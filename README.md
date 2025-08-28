@@ -45,12 +45,44 @@ ProteO-Linker implements a stepwise pipeline:
 ## Workflow
 ![Flowchart](Diagram_color_v3.png)
 
-## Breakdown of steps and options
+## Conclusion:
 
 ## Future Directions and Conclusion
 
-**Conclusion:**
+## How to Use
 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/collaborativebioinformatics/Proteolinker.git
+   cd Proteolinker
+   ```
+
+2. **Install dependencies**
+
+   Make sure you have R (≥ 4.0) and Shiny installed.
+
+   Install required packages from within R:
+   ```r
+   install.packages(c("shiny", "ggplot2", "dplyr", "tidyr", "readr", "ComplexHeatmap"))
+   ```
+
+3. **Launch the app**
+
+   From R or RStudio, run:
+   ```r
+   shiny::runApp("app.R")
+   ```
+
+4. **Upload data**
+   - Select your Olink NPX or parquet file(s)
+   - Run QC and LOD filtering (optional)
+   - (Optional) Upload a differential expression (DE) list
+
+5. **Explore results**
+   - Generate histograms, heatmaps, and volcano plots
+   - Run pathway enrichment analysis
+   - Download plots (PNG) or results (CSV/PDF)
+     
 ## Contributors: 
 
 - Kimberly Walker, BCM (Team Leader)
