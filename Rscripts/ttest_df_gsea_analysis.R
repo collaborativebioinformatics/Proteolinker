@@ -53,3 +53,6 @@ olink_pathway_heatmap(enrich_results = gsea_results, test_results = ttest_result
 # GSEA bar chart from t-test results 
 olink_pathway_visualization(enrich_results = gsea_results, method = "GSEA", number_of_terms = 15)
 dev.off()
+
+#output the pathway results
+write_parquet(gsea_results, '/Users/qiaoyanw/Desktop/Pathway_results')
