@@ -78,7 +78,7 @@ ProteO-Linker implements a stepwise pipeline:
    - Optional PDF report summarizing results  
 
 ## Workflow
-![Flowchart](Diagram_color_v3.png)
+![Flowchart](Diagram_color_v4.png)
 
 ## Conclusion:
 
