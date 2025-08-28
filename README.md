@@ -29,6 +29,8 @@ ProteO-Linker is a web-based protein expression analysis tool. It uses a Shiny i
 Abbreviation  | Acronym
 ------------- | -------------
 ANOVA  | Analysis of Variance
+LOD | Limit of Detection
+LOQ | Limit of Quantification
 PEA | Proximity Extension Assay 
 
 ## NCBI Codeathon Disclaimer
