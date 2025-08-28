@@ -28,14 +28,14 @@ ProteO-Linker implements a stepwise pipeline:
    - DE results can be visualized with volcano plots (protein name, fold-change, p-value)  
    - These outputs can be used as input for pathway enrichment  
 
-4. **Visualization**
+4. **Pathway Enrichment**
+   - Enrichment analysis highlights pathways associated with significant proteins  
+   - Currently supports simple t-tests; additional methods (FDR, Fisher’s test) planned for future development  
+
+5. **Visualization**
    - Histograms/heatmaps of protein expression linked to GO terms  
    - Confidence-based visualization of LOD filtering results  
    - Interactive volcano plots for DE analysis  
-
-5. **Pathway Enrichment**
-   - Enrichment analysis highlights pathways associated with significant proteins  
-   - Currently supports simple t-tests; additional methods (FDR, Fisher’s test) planned for future development  
 
 6. **Outputs**
    - PNG plots for visualization  
