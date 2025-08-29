@@ -424,7 +424,7 @@ df_to_label <- ttest_results%>%
                                ontology = ont)
     }
   })
-  library(ggrepel)
+  
         
   # --------- Volcano plot ----------
   output$volcanoPlot <- renderPlot({
