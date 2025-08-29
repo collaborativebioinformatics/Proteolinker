@@ -407,7 +407,10 @@ function(input, output, session) {
       alternative = "two.sided"
     )
   })
-  
+
+df_to_label <- ttest_results%>%
+  dplyr::slice_head(n = 10)
+        
   # --------- Pathway Enrichment ----------
   pathway_results <- eventReactive(input$run, {
     ont <- input$ontology
@@ -420,21 +423,24 @@ function(input, output, session) {
                                ontology = ont)
     }
   })
-  
+  library(ggrepel)
+        
   # --------- Volcano plot ----------
   output$volcanoPlot <- renderPlot({
     req(ttest_results())
     as.data.frame(ttest_results()) %>%
-      ggplot(aes(x = estimate, y = -log10(Adjusted_pval), col = Threshold)) +
-      geom_point() +
-      set_plot_theme()
+      geom_text_repel(data = df_to_label, aes(label = Assay), 
+                  box.padding = 0.5, point.padding = 0.5, 
+                  max.overlaps = Inf, # Allows more labels to be shown
+                  segment.color = 'grey50')+
+  set_plot_theme()
   })
   
   # --------- Pathway heatmap ----------
   output$heatmapPlot <- renderPlot({
     req(pathway_results())
     olink_pathway_heatmap(enrich_results = pathway_results(),
-                          test_results = ttest_results())
+                          test_results = ttest_results())+ theme(axis.text.x = element_blank())
   })
   
   # --------- Pathway bar chart ----------
