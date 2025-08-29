@@ -409,8 +409,7 @@ function(input, output, session) {
     )
   })
 
-df_to_label <- ttest_results %>%
-        slice_head(n = 10)
+df_to_label <- ttest_results[1:10, ]
         
   # --------- Pathway Enrichment ----------
   pathway_results <- eventReactive(input$run, {
