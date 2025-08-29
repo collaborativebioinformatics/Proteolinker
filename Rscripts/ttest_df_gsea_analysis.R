@@ -18,6 +18,10 @@ ttest_results <- olink_ttest(
 
 Results<-as.data.frame(ttest_results)
 
+df_to_label <- Results%>%
+  dplyr::slice_head(n = 8)
+
+library(ggrepel)
 # volcano plots
 pdf(file = "/Users/qiaoyanw/Desktop/ttest_plot.pdf",
     width = 11,
@@ -25,6 +29,10 @@ pdf(file = "/Users/qiaoyanw/Desktop/ttest_plot.pdf",
 Results |>
   ggplot(aes(x = estimate, y = -log10(Adjusted_pval), col = Threshold)) +
   geom_point() +
+  geom_text_repel(data = df_to_label, aes(label = Assay), 
+                  box.padding = 0.5, point.padding = 0.5, 
+                  max.overlaps = Inf, # Allows more labels to be shown
+                  segment.color = 'grey50')+
   set_plot_theme()
 dev.off()
 
