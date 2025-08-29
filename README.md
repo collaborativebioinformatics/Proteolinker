@@ -116,6 +116,7 @@ LOQ | Limit of Quantification
 NGS | Next-Generation Sequencing
 NPX | Normalized Protein eXpression
 PEA | Proximity Extension Assay
+PPI | Protein-Protein Interaction
 SD | Standard Deviation
 
 ## NCBI Codeathon Disclaimer
