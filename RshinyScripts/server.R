@@ -149,7 +149,7 @@ function(input, output, session) {
   # --------- Fixed LOD Data (from your local file) ----------
   fixed_lod_data <- reactive({
     # Read your existing fixed LOD file
-    fixed_lod <- read.csv("../resources/fixed_lod_proper_format.csv", check.names = FALSE)
+    fixed_lod <- read.csv("fixed_lod_proper_format.csv", check.names = FALSE)
     
     # Ensure the file has the expected structure
     validate(
@@ -187,7 +187,7 @@ function(input, output, session) {
       
       # Apply fixed LOD - manual join
       result <- npx_data %>%
-        left_join(fixed_lod %>% select(Assay, LOD), by = "Assay") %>%
+        left_join(fixed_lod %>% dplyr::select(Assay, LOD), by = "Assay") %>%
         mutate(LOD = as.numeric(LOD))
       
     } else if (input$lod_method == "NC_STDEV") {
@@ -259,7 +259,7 @@ function(input, output, session) {
       arrange(desc(Below_LOD))  # Sort by most Below_LOD first
     
     datatable(summary_table, options = list(
-      pageLength = 25,
+      pageLength = 10,
       lengthMenu = c(10, 25, 50, 100),
       searching = TRUE,
       ordering = TRUE
