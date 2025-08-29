@@ -98,11 +98,11 @@ Additional ideas include:
 ## Contributors: 
 
 - Kimberly Walker, HGSC-BCM (Team Leader)
-- Tomilola Aderupoko,
-- Vijetha Balakundi,
+- Tomilola Aderupoko, Hood College, MD
+- Vijetha Balakundi, McLean Hospital, Boston  | Broad Institute of MIT and Harvard, Cambridge
 - Neda Ghohabi Esfahani,  
 - Michael Muchow, DMV Petri Dish
-- Aniket Naik, 
+- Aniket Naik, University of Pittsburgh
 - Qiaoyan Wang, HGSC-BCM
 
 ## Common Acronyms
