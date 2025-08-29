@@ -108,7 +108,7 @@ Additional ideas include:
 ## Common Acronyms
 Abbreviation  | Acronym
 ------------- | -------------
-ANOVA  | Analysis of Variance
+DE  | Differential Expression
 LOD | Limit of Detection
 LOQ | Limit of Quantification
 NPX | Normalized Protein eXpression
