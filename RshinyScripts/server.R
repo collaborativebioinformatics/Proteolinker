@@ -221,6 +221,7 @@ function(input, output, session) {
   })
   
   # --------- Overall LOD Statistics ----------
+  
   output$lod_stats <- renderTable({
     df <- lod_data()
     
@@ -408,8 +409,8 @@ function(input, output, session) {
       alternative = "two.sided"
     )
   })
-
-df_to_label <- ttest_results[1:10, ]
+Results<-as.data.frame(ttest_results)
+df_to_label <- Results[1:10, ]
         
   # --------- Pathway Enrichment ----------
   pathway_results <- eventReactive(input$run, {
