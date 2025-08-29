@@ -409,8 +409,6 @@ function(input, output, session) {
       alternative = "two.sided"
     )
   })
-Results<-as.data.frame(ttest_results)
-df_to_label <- Results[1:10, ]
         
   # --------- Pathway Enrichment ----------
   pathway_results <- eventReactive(input$run, {
@@ -431,12 +429,8 @@ df_to_label <- Results[1:10, ]
     req(ttest_results())
     as.data.frame(ttest_results()) %>%
     ggplot(aes(x = estimate, y = -log10(Adjusted_pval), col = Threshold)) +
-    geom_point() +
-    geom_text_repel(data = df_to_label, aes(label = Assay), 
-                  box.padding = 0.5, point.padding = 0.5, 
-                  max.overlaps = Inf,
-                  segment.color = 'grey50')+
-    set_plot_theme()
+  geom_point() +
+  set_plot_theme()
   })
   
   # --------- Pathway heatmap ----------
