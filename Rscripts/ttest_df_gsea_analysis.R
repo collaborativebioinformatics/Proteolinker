@@ -57,7 +57,7 @@ pdf(file = "/Users/qiaoyanw/Desktop/Pathway_Plot.pdf",
     width = 11,
     height = 8)
 # GSEA Heatmap from t-test results
-olink_pathway_heatmap(enrich_results = gsea_results, test_results = ttest_results)
+olink_pathway_heatmap(enrich_results = gsea_results, test_results = ttest_results) + theme(axis.text.x = element_blank())
 # GSEA bar chart from t-test results 
 olink_pathway_visualization(enrich_results = gsea_results, method = "GSEA", number_of_terms = 15)
 dev.off()
