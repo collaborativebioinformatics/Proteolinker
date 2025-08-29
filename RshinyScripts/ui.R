@@ -25,15 +25,17 @@ fluidPage(
       radioButtons("lod_method", "LOD Method:",
                    choices = c("FixedLOD", "NC_STDEV"),
                    selected = "NC_STDEV"),
+      conditionalPanel(
+        condition = "input.lod_method == 'FixedLOD'",
+        fileInput("fixed_lod_file", "Fixed LOD File (CSV/Parquet)", 
+                  accept = c(".csv", ".parquet"))
+      ),
       
       tags$hr(),
       checkboxInput("header", "Header (for CSV files)", TRUE),
       tags$hr(),
       downloadButton("download_qc_pdf", "Download QC Report", 
                      class = "btn-primary", style = "width: 100%;"),
-      
-      tags$hr(),
-      h4("Differential & Pathway Analysis", style = "color: #2c3e50;"),
       selectInput("ontology", "Select ontology:",
                   choices = c("KEGG", "GO", "Reactome", "All"),
                   selected = "GO"),
@@ -59,7 +61,7 @@ fluidPage(
                  h4("Sample WARN"), tableOutput("tbl_sample_warn"),
                  h4("Assay WARN"), tableOutput("tbl_assay_warn")),
         
-        # LOD Analysis tab with fixed LOD table
+        # LOD Analysis moved to the last position
         tabPanel("LOD Analysis",
                  fluidRow(
                    column(6, h4("Overall LOD Statistics")),
@@ -70,12 +72,8 @@ fluidPage(
                    column(6, plotlyOutput("lod_plot", height = "500px"))
                  ),
                  br(),
-                 h4("Fixed LOD Values Used"),
-                 dataTableOutput("fixed_lod_table"),
-                 br(),
                  h4("Detailed LOD Summary by Assay"),
                  dataTableOutput("lod_summary")),
-        
         tabPanel("Differential Analysis",
                  h4("Volcano Plot: Gender T-test"),
                  plotOutput("volcanoPlot", height = "600px")),
