@@ -374,9 +374,64 @@ function(input, output, session) {
           ncol = 1, heights = c(0.12, 0.88)
         )
       }
+      #------------------------------------------------------
+      # --------- T-test (reactive on button press) ----------
+      ttest_results <- eventReactive(input$run_analysis, {
+        olink_ttest(
+          df = merged_data(),
+          variable = "Gender",
+          alternative = "two.sided"
+        )
+      })
       
+      # --------- Pathway Enrichment ----------
+      pathway_results <- eventReactive(input$run_analysis, {
+        ont <- input$ontology
+        if (ont == "All") {
+          olink_pathway_enrichment(data = merged_data(),
+                                   test_results = ttest_results())
+        } else {
+          olink_pathway_enrichment(data = merged_data(),
+                                   test_results = ttest_results(),
+                                   ontology = ont)
+        }
+      })
+      
+      # --------- Volcano plot ----------
+      output$volcanoPlot <- renderPlot({
+        req(ttest_results())
+        as.data.frame(ttest_results()) %>%
+          ggplot(aes(x = estimate, y = -log10(Adjusted_pval), col = Threshold)) +
+          geom_point() +
+          set_plot_theme()
+      })
+      
+      # --------- Pathway heatmap ----------
+      output$heatmapPlot <- renderPlot({
+        req(pathway_results())
+        olink_pathway_heatmap(enrich_results = pathway_results(),
+                              test_results = ttest_results())
+      })
+      
+      # --------- Pathway bar chart ----------
+      output$barPlot <- renderPlot({
+        req(pathway_results())
+        olink_pathway_visualization(enrich_results = pathway_results(),
+                                    method = "GSEA",
+                                    number_of_terms = 15)
+      })
+      
+      # --------- Download pathway results ----------
+      output$download_pathway <- downloadHandler(
+        filename = function() {
+          paste0("Pathway_results_", Sys.Date(), ".parquet")
+        },
+        content = function(file) {
+          write_parquet(pathway_results(), file)
+            
       dev.off()
     }
   )
   
+
 }
