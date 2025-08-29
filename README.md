@@ -109,6 +109,8 @@ Additional ideas include:
 Abbreviation  | Acronym
 ------------- | -------------
 DE  | Differential Expression
+FDR | False Discovery Rate
+GSEA | Gene Set Enrichment Analysis
 LOD | Limit of Detection
 LOQ | Limit of Quantification
 NGS | Next-Generation Sequencing
