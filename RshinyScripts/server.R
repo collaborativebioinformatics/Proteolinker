@@ -17,6 +17,7 @@ library(purrr)
 library(DT)
 library(plotly)
 library(ggplot2)
+library(ggrepel)
 
 function(input, output, session) {
   
