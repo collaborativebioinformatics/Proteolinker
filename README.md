@@ -83,7 +83,6 @@ ProteO-Linker implements a stepwise pipeline:
 ## Workflow
 ![Flowchart](Diagram_color_v5.png)
 
-## Conclusion:
 
 ## Future Directions
 We plan to enhance the differential expression analysis by incorporating multivariate approaches and expanding the selection of pathway enrichment methods. More broadly, this is one of several analytical pipelines we aim to develop further.
