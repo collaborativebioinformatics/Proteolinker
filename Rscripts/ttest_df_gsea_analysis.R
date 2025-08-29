@@ -19,7 +19,7 @@ ttest_results <- olink_ttest(
 Results<-as.data.frame(ttest_results)
 
 df_to_label <- Results%>%
-  dplyr::slice_head(n = 8)
+  dplyr::slice_head(n = 10)
 
 library(ggrepel)
 # volcano plots
