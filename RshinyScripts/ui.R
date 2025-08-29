@@ -25,17 +25,23 @@ fluidPage(
       radioButtons("lod_method", "LOD Method:",
                    choices = c("FixedLOD", "NC_STDEV"),
                    selected = "NC_STDEV"),
-      conditionalPanel(
-        condition = "input.lod_method == 'FixedLOD'",
-        fileInput("fixed_lod_file", "Fixed LOD File (CSV/Parquet)", 
-                  accept = c(".csv", ".parquet"))
-      ),
       
-      tags$hr(),
-      checkboxInput("header", "Header (for CSV files)", TRUE),
+      
       tags$hr(),
       downloadButton("download_qc_pdf", "Download QC Report", 
                      class = "btn-primary", style = "width: 100%;"),
+      h4("Differential & Pathway Analysis", style = "color: #2C3E50;"),
+      # New DE mode selector
+      radioButtons("de_mode", "Differential Expression Mode:",
+                   choices = c("Run T-test" = "ttest",
+                               "Upload DE Results" = "upload"),
+                   selected = "ttest"),
+      # Only show DE upload option if "upload" is chosen
+      conditionalPanel(
+        condition = "input.de_mode == 'upload'",
+        fileInput("de_file", "Upload DE Results (CSV/Parquet)",
+                  accept = c(".csv", ".parquet"))
+      ),
       selectInput("ontology", "Select ontology:",
                   choices = c("KEGG", "GO", "Reactome", "All"),
                   selected = "GO"),
@@ -49,7 +55,7 @@ fluidPage(
       tabsetPanel(
         type = "tabs",
         tabPanel("Summary", 
-                 h4("Sample Counts by Gender and Sample Type"),
+                 h4("Sample Counts by Category"),
                  tableOutput("summary_table")),
         
         tabPanel("Data Completeness", 
@@ -75,7 +81,7 @@ fluidPage(
                  h4("Detailed LOD Summary by Assay"),
                  dataTableOutput("lod_summary")),
         tabPanel("Differential Analysis",
-                 h4("Volcano Plot: Gender T-test"),
+                 h4("Volcano Plot: Category T-test"),
                  plotOutput("volcanoPlot", height = "600px")),
         
         tabPanel("Pathway Analysis",
@@ -83,7 +89,9 @@ fluidPage(
                  plotOutput("heatmapPlot", height = "500px"),
                  br(),
                  h4("Pathway Bar Chart"),
-                 plotOutput("barPlot", height = "500px"))
+                 plotOutput("barPlot", height = "500px")),
+        
+        
       )
     )
   )

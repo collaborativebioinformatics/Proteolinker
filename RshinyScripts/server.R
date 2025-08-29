@@ -17,6 +17,7 @@ library(purrr)
 library(DT)
 library(plotly)
 library(ggplot2)
+library(org.Hs.eg.db) 
 library(ggrepel)
 
 function(input, output, session) {
@@ -30,16 +31,125 @@ function(input, output, session) {
   meta_data <- reactive({
     req(input$meta_file)
     if (grepl("\\.csv$", input$meta_file$name, ignore.case = TRUE)) {
-      read.csv(input$meta_file$datapath, header = input$header, check.names = FALSE)
+      read.csv(input$meta_file$datapath, header = TRUE, check.names = FALSE)
     } else {
       arrow::read_parquet(input$meta_file$datapath)
     }
   })
   
+  
+  # --------- Merged data for summary (keep all proteomics samples) ----------
+  merged_data <- reactive({
+    df1 <- prot_data()
+    df2 <- meta_data()
+    validate(
+      need("SampleID" %in% names(df1), "Proteomics file must have 'SampleID'"),
+      need("SampleID" %in% names(df2), "Metadata file must have 'SampleID'")
+    )
+    left_join(df1, df2, by = "SampleID") 
+  })
+  
+  # --------- Summary: unique SampleIDs by Category x SampleType ----------
+  output$summary_table <- renderTable({
+    df <- merged_data()
+    validate(
+      need("Category" %in% names(df), "Merged data must contain 'Category'"),
+      need("SampleType" %in% names(df), "Merged data must contain 'SampleType'"),
+      need("SampleID" %in% names(df), "Merged data must contain 'SampleID'")
+    )
+    
+    all_types <- c("SAMPLE")
+    
+    unique_df <- df %>%
+      distinct(SampleID, Category, SampleType) %>%
+      filter(!is.na(Category)) %>%  
+      mutate(SampleType = factor(SampleType, levels = all_types))
+    
+    counts <- unique_df %>%
+      count(Category, SampleType, name = "UniqueCount") %>%
+      tidyr::complete(Category, SampleType = all_types, fill = list(UniqueCount = 0))
+    
+    wide <- counts %>%
+      tidyr::pivot_wider(names_from = SampleType, values_from = UniqueCount, values_fill = 0) %>%
+      arrange(Category)
+    
+    wide
+  })
+  
+  # --------- Olink QC: completeness + WARN/FAIL tables ----------
+  qc_list <- reactive({
+    df <- prot_data()
+    # check_data-completeness is not always exported; keep ::: as in your script
+    compl <- tryCatch(
+      {
+        OlinkAnalyze:::check_data_completeness(df)  # run QC
+        "No issues with Input data"                   # if no error, return this text
+      },
+      error = function(e) {
+        paste("check_data_completeness() error:", e$message)
+      }
+    )
+    
+    # Safe guards if columns are missing
+    need_cols <- c("AssayQC","SampleQC","PlateID","Assay","Block","OlinkID","SampleID")
+    missing <- setdiff(need_cols, names(df))
+    validate(need(length(missing) == 0,
+                  paste("Proteomics file missing columns:", paste(missing, collapse = ", "))))
+    
+    AssayWarn <- df %>% filter(grepl("WARN", AssayQC, ignore.case = TRUE))
+    SampleWarn <- df %>% filter(grepl("WARN", SampleQC, ignore.case = TRUE))
+    SampleFail <- df %>% filter(grepl("FAIL", SampleQC, ignore.case = TRUE))
+    
+    AssayWarnData <- AssayWarn %>%
+      distinct(PlateID, Assay, Block, OlinkID) %>%
+      group_by(Assay, Block, OlinkID) %>%
+      summarise(across(everything(), ~toString(.)), .groups = "drop")
+    
+    SampleWarnData <- SampleWarn %>%
+      distinct(SampleID, Block, PlateID) %>%
+      group_by(SampleID, PlateID) %>%
+      summarise(across(everything(), ~toString(.)), .groups = "drop")
+    
+    SampleFailData <- SampleFail %>%
+      distinct(SampleID, Block, PlateID) %>%
+      group_by(SampleID, PlateID) %>%
+      summarise(across(everything(), ~toString(.)), .groups = "drop")
+    
+    list(
+      completeness = compl,
+      assay_warn = AssayWarnData,
+      sample_warn = SampleWarnData,
+      sample_fail = SampleFailData
+    )
+  })
+  
+  output$completeness <- renderPrint({
+    qc <- qc_list()$completeness
+    qc
+  })
+  
+  output$tbl_sample_fail <- renderTable({
+    dat <- qc_list()$sample_fail
+    if (nrow(dat) == 0) return(data.frame(Message = "No FAILED samples"))
+    head(dat, 50)
+  })
+  
+  output$tbl_sample_warn <- renderTable({
+    dat <- qc_list()$sample_warn
+    if (nrow(dat) == 0) return(data.frame(Message = "No WARNED samples"))
+    head(dat, 50)
+  })
+  
+  output$tbl_assay_warn <- renderTable({
+    dat <- qc_list()$assay_warn
+    if (nrow(dat) == 0) return(data.frame(Message = "No WARNED assays"))
+    head(dat, 50)
+  })
+  
   # --------- Fixed LOD Data (from your local file) ----------
   fixed_lod_data <- reactive({
     # Read your existing fixed LOD file
-    fixed_lod <- read.csv("fixed_lod_proper_format.csv", check.names = FALSE)
+    fixed_lod <- read.csv("../resources/fixed_lod_proper_format.csv", check.names = FALSE)
     
     # Ensure the file has the expected structure
     validate(
@@ -56,15 +166,6 @@ function(input, output, session) {
     return(fixed_lod)
   })
   
-  # --------- Display Fixed LOD Table ----------
-  output$fixed_lod_table <- renderDataTable({
-    fixed_lod <- fixed_lod_data()
-    datatable(fixed_lod, options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, 15),
-      searching = TRUE
-    ))
-  })
   
   # --------- LOD Processing ----------
   lod_data <- reactive({
@@ -154,7 +255,7 @@ function(input, output, session) {
       complete(Assay, Threshold = all_categories, fill = list(n = 0)) %>%
       pivot_wider(names_from = Threshold, values_from = n, values_fill = 0) %>%
       mutate(Total = rowSums(across(where(is.numeric)))) %>%
-      select(Assay, any_of(all_categories), Total) %>%
+      dplyr::select(Assay, any_of(all_categories), Total) %>%
       arrange(desc(Below_LOD))  # Sort by most Below_LOD first
     
     datatable(summary_table, options = list(
@@ -221,7 +322,6 @@ function(input, output, session) {
   })
   
   # --------- Overall LOD Statistics ----------
-  
   output$lod_stats <- renderTable({
     df <- lod_data()
     
@@ -236,118 +336,10 @@ function(input, output, session) {
     missing_count <- sum(df$Threshold == "Missing", na.rm = TRUE)
     
     data.frame(
-      Metric = c("Total Samples", "Above LOD", "Below LOD", "Missing", "% Below LOD"),
+      Metric = c("Total Samples/Assays", "Above LOD", "Below LOD", "Missing", "% Below LOD"),
       Value = c(total_samples, above_lod_count, below_lod_count, missing_count, 
                 round(below_lod_count/total_samples * 100, 2))
     )
-  })
-  
-  # --------- Merged data for summary (keep all proteomics samples) ----------
-  merged_data <- reactive({
-    df1 <- prot_data()
-    df2 <- meta_data()
-    validate(
-      need("SampleID" %in% names(df1), "Proteomics file must have 'SampleID'"),
-      need("SampleID" %in% names(df2), "Metadata file must have 'SampleID'")
-    )
-    left_join(df1, df2, by = "SampleID")
-  })
-  
-  # --------- Summary: unique SampleIDs by Gender x SampleType ----------
-  output$summary_table <- renderTable({
-    df <- merged_data()
-    validate(
-      need("Gender" %in% names(df), "Merged data must contain 'Gender'"),
-      need("SampleType" %in% names(df), "Merged data must contain 'SampleType'"),
-      need("SampleID" %in% names(df), "Merged data must contain 'SampleID'")
-    )
-    
-    all_types <- c("SAMPLE")
-    
-    unique_df <- df %>%
-      distinct(SampleID, Gender, SampleType) %>%
-      filter(Gender %in% c("Male", "Female")) %>%   # keep only Male/Female
-      mutate(SampleType = factor(SampleType, levels = all_types))
-    
-    counts <- unique_df %>%
-      count(Gender, SampleType, name = "UniqueCount") %>%
-      tidyr::complete(Gender, SampleType = all_types, fill = list(UniqueCount = 0))
-    
-    wide <- counts %>%
-      tidyr::pivot_wider(names_from = SampleType, values_from = UniqueCount, values_fill = 0) %>%
-      arrange(Gender)
-    
-    wide
-  })
-  
-  # --------- Olink QC: completeness + WARN/FAIL tables ----------
-  qc_list <- reactive({
-    df <- prot_data()
-    # check_data-completeness is not always exported; keep ::: as in your script
-    compl <- tryCatch(
-      {
-        OlinkAnalyze:::check_data_completeness(df)  # run QC
-        "No issues with Input data"                   # if no error, return this text
-      },
-      error = function(e) {
-        paste("check_data_completeness() error:", e$message)
-      }
-    )
-    
-    # Safe guards if columns are missing
-    need_cols <- c("AssayQC","SampleQC","PlateID","Assay","Block","OlinkID","SampleID")
-    missing <- setdiff(need_cols, names(df))
-    validate(need(length(missing) == 0,
-                  paste("Proteomics file missing columns:", paste(missing, collapse = ", "))))
-    
-    AssayWarn <- df %>% filter(grepl("WARN", AssayQC, ignore.case = TRUE))
-    SampleWarn <- df %>% filter(grepl("WARN", SampleQC, ignore.case = TRUE))
-    SampleFail <- df %>% filter(grepl("FAIL", SampleQC, ignore.case = TRUE))
-    
-    AssayWarnData <- AssayWarn %>%
-      distinct(PlateID, Assay, Block, OlinkID) %>%
-      group_by(Assay, Block, OlinkID) %>%
-      summarise(across(everything(), ~toString(.)), .groups = "drop")
-    
-    SampleWarnData <- SampleWarn %>%
-      distinct(SampleID, Block, PlateID) %>%
-      group_by(SampleID, PlateID) %>%
-      summarise(across(everything(), ~toString(.)), .groups = "drop")
-    
-    SampleFailData <- SampleFail %>%
-      distinct(SampleID, Block, PlateID) %>%
-      group_by(SampleID, PlateID) %>%
-      summarise(across(everything(), ~toString(.)), .groups = "drop")
-    
-    list(
-      completeness = compl,
-      assay_warn = AssayWarnData,
-      sample_warn = SampleWarnData,
-      sample_fail = SampleFailData
-    )
-  })
-  
-  output$completeness <- renderPrint({
-    qc <- qc_list()$completeness
-    qc
-  })
-  
-  output$tbl_sample_fail <- renderTable({
-    dat <- qc_list()$sample_fail
-    if (nrow(dat) == 0) return(data.frame(Message = "No FAILED samples"))
-    head(dat, 50)
-  })
-  
-  output$tbl_sample_warn <- renderTable({
-    dat <- qc_list()$sample_warn
-    if (nrow(dat) == 0) return(data.frame(Message = "No WARNED samples"))
-    head(dat, 50)
-  })
-  
-  output$tbl_assay_warn <- renderTable({
-    dat <- qc_list()$assay_warn
-    if (nrow(dat) == 0) return(data.frame(Message = "No WARNED assays"))
-    head(dat, 50)
   })
   
   # --------- Download QC PDF ----------
@@ -402,39 +394,54 @@ function(input, output, session) {
     }
   )
   # --------- T-test (reactive on button press) ----------
-  ttest_results <- eventReactive(input$run, {
-    olink_ttest(
-      df = merged_data(),
-      variable = "Gender",
-      alternative = "two.sided"
-    )
+  
+  de_results <- eventReactive(input$run, {
+    if (input$de_mode == "ttest") {
+      # Run internal t-test
+      olink_ttest(
+        df = merged_data(),
+        variable = "Category",
+        alternative = "two.sided"
+      ) 
+    } else {
+      # Load user-uploaded DE results
+      req(input$de_file)
+      ext <- tools::file_ext(input$de_file$name)
+      df <- if (ext == "csv") {
+        read.csv(input$de_file$datapath, stringsAsFactors = FALSE)
+      } else if (ext == "parquet") {
+        arrow::read_parquet(input$de_file$datapath)
+      } else {
+        validate("Unsupported file format. Please upload CSV or Parquet.")
+      }
+      # Validate required columns
+      required_cols <- c("Protein", "estimate", "Adjusted_pval")
+      missing <- setdiff(required_cols, colnames(df))
+      validate(
+        need(length(missing) == 0,
+             paste("Missing required columns in DE results:", paste(missing, collapse = ", ")))
+      )
+      # Add Threshold if not present
+      if (!"Threshold" %in% colnames(df)) {
+        df$Threshold <- ifelse(df$Adjusted_pval < 0.05 & df$estimate > 0, "Up",
+                               ifelse(df$Adjusted_pval < 0.05 & df$estimate < 0, "Down", "NS"))
+      }
+      df
+    }
   })
   
   df_to_label <- reactive({
-    res <- ttest_results()
+    res <- req(de_results())
     validate(need(!is.null(res), "No results from t-test"))
     
     res_df <- as.data.frame(res)
     dplyr::slice_head(res_df, n = 10)
   })
-  # --------- Pathway Enrichment ----------
-  pathway_results <- eventReactive(input$run, {
-    ont <- input$ontology
-    if (ont == "All") {
-      olink_pathway_enrichment(data = merged_data(),
-                               test_results = ttest_results())
-    } else {
-      olink_pathway_enrichment(data = merged_data(),
-                               test_results = ttest_results(),
-                               ontology = ont)
-    }
-  })
-  
+
   
   # --------- Volcano plot ----------
   output$volcanoPlot <- renderPlot({
-    df <- ttest_results()
-    req(df)
+    df <- req(de_results())
     
     df <- as.data.frame(df)
     validate(need(all(c("estimate", "Adjusted_pval", "Threshold") %in% names(df)),
@@ -458,11 +465,28 @@ function(input, output, session) {
       set_plot_theme()
   })
   
+  # --------- Pathway Enrichment ----------
+  pathway_results <- eventReactive(input$run, {
+    ont <- input$ontology
+    if (ont == "All") {
+      olink_pathway_enrichment(
+        data = merged_data(),
+        test_results = de_results()
+      )
+    } else {
+      olink_pathway_enrichment(
+        data = merged_data(),
+        test_results = de_results(),
+        ontology = ont
+      )
+    }
+  })
+  
   # --------- Pathway heatmap ----------
   output$heatmapPlot <- renderPlot({
     req(pathway_results())
     olink_pathway_heatmap(enrich_results = pathway_results(),
-                          test_results = ttest_results())+ theme(axis.text.x = element_blank())
+                          test_results = de_results())+ theme(axis.text.x = element_blank())
   })
   
   # --------- Pathway bar chart ----------
@@ -482,4 +506,5 @@ function(input, output, session) {
       arrow::write_parquet(pathway_results(), file)
     }
   )
+  
 }
