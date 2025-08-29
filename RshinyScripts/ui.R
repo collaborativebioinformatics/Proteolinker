@@ -67,7 +67,21 @@ fluidPage(
                  br(),
                  h4("Detailed LOD Summary by Assay"),
                  dataTableOutput("lod_summary"))
+
+        
+      tabPanel("Differential Analysis",
+                 h4("Volcano Plot: Gender T-test"),
+                 plotOutput("volcanoPlot", height = "600px")),
+        
+        tabPanel("Pathway Analysis",
+                 h4("Pathway Heatmap"),
+                 plotOutput("heatmapPlot", height = "500px"),
+                 br(),
+                 h4("Pathway Bar Chart"),
+                 plotOutput("barPlot", height = "500px"))
+        
       )
     )
   )
+
 )
