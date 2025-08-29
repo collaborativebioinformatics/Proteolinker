@@ -111,6 +111,7 @@ Abbreviation  | Acronym
 DE  | Differential Expression
 LOD | Limit of Detection
 LOQ | Limit of Quantification
+NGS | Next-Generation Sequencing
 NPX | Normalized Protein eXpression
 PEA | Proximity Extension Assay 
 
