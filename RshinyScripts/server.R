@@ -20,7 +20,7 @@ library(ggplot2)
 
 function(input, output, session) {
   
-  # --------- Loaders ----------
+   # --------- Loaders ----------
   prot_data <- reactive({
     req(input$prot_file)
     arrow::read_parquet(input$prot_file$datapath)
@@ -31,53 +31,81 @@ function(input, output, session) {
     if (grepl("\\.csv$", input$meta_file$name, ignore.case = TRUE)) {
       read.csv(input$meta_file$datapath, header = input$header, check.names = FALSE)
     } else {
-     arrow::read_parquet(input$meta_file$datapath)
+      arrow::read_parquet(input$meta_file$datapath)
     }
+  })
+  
+  # --------- Fixed LOD Data (from your local file) ----------
+  fixed_lod_data <- reactive({
+    # Read your existing fixed LOD file
+    fixed_lod <- read.csv("fixed_lod_proper_format.csv", check.names = FALSE)
+    
+    # Ensure the file has the expected structure
+    validate(
+      need("Assay" %in% names(fixed_lod), "Fixed LOD file must contain 'Assay' column"),
+      need(any(c("LOD", "LODNPX") %in% names(fixed_lod)), 
+           "Fixed LOD file must contain 'LOD' or 'LODNPX' column")
+    )
+    
+    # Rename LODNPX to LOD if needed
+    if ("LODNPX" %in% names(fixed_lod) && !"LOD" %in% names(fixed_lod)) {
+      fixed_lod <- fixed_lod %>% rename(LOD = LODNPX)
+    }
+    
+    return(fixed_lod)
+  })
+  
+  # --------- Display Fixed LOD Table ----------
+  output$fixed_lod_table <- renderDataTable({
+    fixed_lod <- fixed_lod_data()
+    datatable(fixed_lod, options = list(
+      pageLength = 10,
+      lengthMenu = c(5, 10, 15),
+      searching = TRUE
+    ))
   })
   
   # --------- LOD Processing ----------
   lod_data <- reactive({
     req(prot_data(), input$lod_method)
     
-    npx_data <- prot_data() %>%
-      filter(!grepl("ext_ctrl", AssayType, ignore.case = TRUE)) %>%
-      filter(!grepl("inc_ctrl", AssayType, ignore.case = TRUE)) %>%
-      filter(!grepl("amp_ctrl", AssayType, ignore.case = TRUE))
+    npx_data <- prot_data()
+    
+    # Remove AssayType filter if column doesn't exist - add check
+    if ("AssayType" %in% names(npx_data)) {
+      npx_data <- npx_data %>%
+        filter(!grepl("ext_ctrl", AssayType, ignore.case = TRUE)) %>%
+        filter(!grepl("inc_ctrl", AssayType, ignore.case = TRUE)) %>%
+        filter(!grepl("amp_ctrl", AssayType, ignore.case = TRUE))
+    }
     
     if (input$lod_method == "FixedLOD") {
-      req(input$fixed_lod_file)
+      # Use the fixed LOD data from your file
+      fixed_lod <- fixed_lod_data()
       
-      # Read fixed LOD file
-      if (grepl("\\.csv$", input$fixed_lod_file$name, ignore.case = TRUE)) {
-        fixed_lod <- read.csv(input$fixed_lod_file$datapath, check.names = FALSE)
-      } else {
-        fixed_lod <- read_parquet(input$fixed_lod_file$datapath)
-      }
-      
-      # Your fixed LOD file has different column names - need to handle this
-      # Check if columns exist and rename appropriately
-      if ("LODNPX" %in% names(fixed_lod)) {
-        fixed_lod <- fixed_lod %>% rename(LOD = LODNPX)
-      } else if ("LOD" %in% names(fixed_lod)) {
-        # Already has LOD column, do nothing
-      } else {
-        stop("Fixed LOD file must contain either 'LOD' or 'LODNPX' column")
-      }
-      
-      # Ensure we have Assay column for joining
-      if (!"Assay" %in% names(fixed_lod)) {
-        stop("Fixed LOD file must contain 'Assay' column")
-      }
-      
-      # Apply fixed LOD - manual join since olink_lod might expect different format
+      # Apply fixed LOD - manual join
       result <- npx_data %>%
         left_join(fixed_lod %>% select(Assay, LOD), by = "Assay") %>%
         mutate(LOD = as.numeric(LOD))
       
     } else if (input$lod_method == "NC_STDEV") {
       # Calculate LOD based on negative controls
-      result <- npx_data %>% 
-        filter(grepl('NEGATIVE_CONTROL', SampleType, ignore.case = TRUE)) %>%
+      # Check if SampleType column exists
+      if ("SampleType" %in% names(npx_data)) {
+        negative_controls <- npx_data %>% 
+          filter(grepl('NEGATIVE_CONTROL', SampleType, ignore.case = TRUE))
+      } else {
+        # If no SampleType, try to identify negative controls by SampleID pattern
+        negative_controls <- npx_data %>% 
+          filter(grepl('NC|NEG', SampleID, ignore.case = TRUE))
+      }
+      
+      if (nrow(negative_controls) == 0) {
+        showNotification("No negative controls found for NC_STDEV method", type = "warning")
+        return(NULL)
+      }
+      
+      result <- negative_controls %>%
         group_by(PlateID, Assay) %>%
         summarise(
           LOD = mean(NPX, na.rm = TRUE) + 3 * sd(NPX, na.rm = TRUE),
