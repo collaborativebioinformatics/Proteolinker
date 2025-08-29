@@ -113,7 +113,8 @@ LOD | Limit of Detection
 LOQ | Limit of Quantification
 NGS | Next-Generation Sequencing
 NPX | Normalized Protein eXpression
-PEA | Proximity Extension Assay 
+PEA | Proximity Extension Assay
+SD | Standard Deviation
 
 ## NCBI Codeathon Disclaimer
 This software was created as part of an NCBI codeathon, a hackathon-style event focused on rapid innovation. While we encourage you to explore and adapt this code, please be aware that NCBI does not provide ongoing support for it.
