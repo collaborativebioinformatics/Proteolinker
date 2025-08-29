@@ -430,7 +430,9 @@ df_to_label <- ttest_results%>%
   output$volcanoPlot <- renderPlot({
     req(ttest_results())
     as.data.frame(ttest_results()) %>%
-      geom_text_repel(data = df_to_label, aes(label = Assay), 
+      ggplot(aes(x = estimate, y = -log10(Adjusted_pval), col = Threshold)) +
+  geom_point() +
+  geom_text_repel(data = df_to_label, aes(label = Assay), 
                   box.padding = 0.5, point.padding = 0.5, 
                   max.overlaps = Inf, # Allows more labels to be shown
                   segment.color = 'grey50')+
