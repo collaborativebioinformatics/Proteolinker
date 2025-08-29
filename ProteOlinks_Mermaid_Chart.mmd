@@ -1,0 +1,49 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph s1["Data Input & Quality Control"]
+        n1["Upload O-Link Data"]
+        n3["Inform User regarding Sample | Assay issues"]
+        n2["Verify input file format"]
+  end
+ subgraph s2["Limits of Detection [LOD] Filtering"]
+        n5["Fixed LOD or Standard Deviation Calculation"]
+        n6["Visualization: Interactive Volcano Plot"]
+  end
+ subgraph s4["Differential Expression Analysis"]
+        n4["Upload Sample Manifest"]
+        n7["Two sided T_test"]
+        n8["Visualization: Volcano Plots"]
+        n20["Upload DE Analysis"]
+  end
+ subgraph s3["Pathway Analysis"]
+        n9["Gene Set Enrichment Analysis [GSEA]"]
+        n10["Gene Ontology Options:
+        1. KEGG
+        2. GO
+        3. Reactome
+        4. All Ontologies"]
+        n18["Visualization: Heatmap Plot & Bar Plot"]
+        n19["Pathway Analysis Results [parquet file format]"]
+  end
+    n1 --> n2
+    n2 --> n3
+    s1 -- No LOD filtering --> s4
+    s1 --> s2
+    n5 --> n6
+    s2 --> s4
+    n4 --> n7
+    n7 --> n8
+    n9 --> n10 
+    s4 --> s3
+    n10  --> n18 
+    n18 --> n19
+    n20 --> n8  
+    
+    style s1 stroke:#BBDEFB,fill:#BBDEFB
+    style s4 fill:#FFE0B2
+    style s2 fill:#C8E6C9
+    style s3 fill:#E1BEE7
+
