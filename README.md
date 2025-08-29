@@ -110,7 +110,9 @@ Abbreviation  | Acronym
 ------------- | -------------
 DE  | Differential Expression
 FDR | False Discovery Rate
+GO | Gene Ontology
 GSEA | Gene Set Enrichment Analysis
+KEGG | Kyoto Encyclopedia of Genes and Genomes
 LOD | Limit of Detection
 LOQ | Limit of Quantification
 NGS | Next-Generation Sequencing
