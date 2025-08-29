@@ -18,7 +18,8 @@ LOD_opt <- readline("Enter your LOD optiones (1 for FixedLOD, 2 for NC STDEV LOD
 npx_parquet<-Olink_datafile|>
   filter(!grepl("ext_ctrl", AssayType))|>
   filter(!grepl("inc_ctrl", AssayType))|>
-  filter(!grepl("amp_ctrl", AssayType))
+  filter(!grepl("amp_ctrl",AssayType))|>
+  filter(!grepl("CONTROL",SampleType))
 
 if (LOD_opt==1){
   fixedLOD_filepath <- "/Users/qiaoyanw/Desktop/ExploreHT_Fixed LOD_2024-12-19.csv"
