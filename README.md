@@ -105,7 +105,7 @@ Additional ideas include:
 - Aniket Naik, University of Pittsburgh
 - Qiaoyan Wang, HGSC-BCM
 
-## Common Acronyms
+## Acronyms
 Abbreviation  | Acronym
 ------------- | -------------
 DE  | Differential Expression
